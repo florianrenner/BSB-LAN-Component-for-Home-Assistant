@@ -21,6 +21,8 @@ from homeassistant.helpers.entity import Entity
 from homeassistant.util import Throttle
 import homeassistant.helpers.config_validation as cv
 
+from const import CONF_BUSNUMBER
+
 _LOGGER = logging.getLogger(__name__)
 
 DEFAULT_METHOD = 'POST'
@@ -66,20 +68,23 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
             parameter=parameter,
             timeout=DEFAULT_TIMEOUT
         )
+           
         if data.setup_error is True:
             _LOGGER.error("can't connect to BSBLan")
             return
         # Must update the sensor now (including fetching the rest resource) to
         # ensure it's updating its state.
-        sensors.append(BSBlanSensor(data, interval, force_update))
+        sensors.append(BSBlanSensor(config.get(CONF_HOST), config.get(CONF_BUSNUMBER), data, interval, force_update, bus_request))
     add_entities(sensors, True)
 
 
 class BSBlanSensor(Entity):
     """Implementation of a BSB-LAN sensor."""
 
-    def __init__(self, rest_data, interval, force_update):
+    def __init__(self, host, bus_number, rest_data, interval, force_update):
         """Initialize the BSB-LAN sensor."""
+        self._host = host
+        self._bus_number = bus_number
         self._hass = None
         self._rest_data = rest_data
         self._name = None
@@ -92,7 +97,7 @@ class BSBlanSensor(Entity):
     @property
     def name(self):
         """Return the name of the sensor."""
-        self._name = self._rest_data.name
+        self._name = "bsb_lan" + str(self._bus_number) + "_" + self._rest_data.name
         return self._name
 
     @property
@@ -126,6 +131,14 @@ class BSBlanSensor(Entity):
     def update(self):
         """Get the latest data from REST API and update the state."""
         _LOGGER.info("update sensors BSBLan")
+
+        try:
+            bus_request = requests.Request(DEFAULT_METHOD, 'http://' + self._host + '/P1,66,' + str(self._bus_number)).prepare()
+            with requests.Session() as sess:
+                response = sess.send(self._bus_request, timeout=DEFAULT_TIMEOUT)
+        except requests.exceptions.RequestException as ex:
+            _LOGGER.error("Error switching bus-device %s", ex)
+
         self._rest_data.update()
         
         self._state = self._rest_data.data
@@ -166,6 +179,7 @@ class RestData():
         import objectpath
         
         _LOGGER.info("Updating from %s", self._request.url)
+
         try:
             with requests.Session() as sess:
                 response = sess.send(

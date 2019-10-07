@@ -12,6 +12,8 @@ CONF_MODE_LIST = 'modes'
 
 CONF_UNIQUE_ID = 'unique_id'
 
+CONF_BUSNUMBER = 'bus_number'
+
 SENSOR_TYPE_TEMPERATURE = 'temperature'
 
 SENSOR_TYPES = {
