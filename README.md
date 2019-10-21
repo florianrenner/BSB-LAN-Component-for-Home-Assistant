@@ -8,8 +8,6 @@ to control 2 parallel heating systems (4 heating circuits) Systems via LPB Bus.
 info for the BSB-LAN Module
 https://github.com/fredlcore/bsb_lan
 
-dicussion about this component
-https://community.home-assistant.io/t/bsb-lan-component/113501/1
 
 
 
