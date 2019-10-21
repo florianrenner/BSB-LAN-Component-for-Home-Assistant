@@ -21,7 +21,7 @@ from homeassistant.helpers.entity import Entity
 from homeassistant.util import Throttle
 import homeassistant.helpers.config_validation as cv
 
-from const import CONF_BUSNUMBER
+#from const import CONF_BUSNUMBER
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -36,6 +36,8 @@ SCAN_INTERVAL = timedelta(seconds=120)
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_HOST): cv.string,
+    #vol.Optional(CONF_BUSNUMBER, default=0): cv.positive_int,
+    vol.Optional('bus_number', default=0): cv.positive_int,
     vol.Optional(CONF_AUTHENTICATION):
         vol.In([HTTP_BASIC_AUTHENTICATION, HTTP_DIGEST_AUTHENTICATION]),
     vol.Optional(CONF_HEADERS): vol.Schema({cv.string: cv.string}),
@@ -74,7 +76,7 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
             return
         # Must update the sensor now (including fetching the rest resource) to
         # ensure it's updating its state.
-        sensors.append(BSBlanSensor(config.get(CONF_HOST), config.get(CONF_BUSNUMBER), data, interval, force_update, bus_request))
+        sensors.append(BSBlanSensor(config.get(CONF_HOST), config.get('bus_number'), data, interval, force_update))
     add_entities(sensors, True)
 
 
@@ -135,7 +137,7 @@ class BSBlanSensor(Entity):
         try:
             bus_request = requests.Request(DEFAULT_METHOD, 'http://' + self._host + '/P1,66,' + str(self._bus_number)).prepare()
             with requests.Session() as sess:
-                response = sess.send(self._bus_request, timeout=DEFAULT_TIMEOUT)
+                response = sess.send(bus_request, timeout=DEFAULT_TIMEOUT)
         except requests.exceptions.RequestException as ex:
             _LOGGER.error("Error switching bus-device %s", ex)
 
