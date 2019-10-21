@@ -1,6 +1,7 @@
 # BSB Lan sensor 
 
 This custom component handles the communication to a BSB-Lan Module and create the entities for Home Assistant.
+
 I've extended the script created by liudger (https://github.com/liudger/BSB-LAN-Component-for-Home-Assistant)
 to control 2 parallel heating systems (4 heating circuits) Systems via LPB Bus.
 
